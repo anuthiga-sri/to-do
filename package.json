@@ -19,9 +19,11 @@
   },
   "homepage": "https://github.com/anuthiga-sri/to-do#readme",
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "express": "^5.1.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prisma": "^6.8.2"
   }
 }
