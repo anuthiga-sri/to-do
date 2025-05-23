@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TodoStatus {
+  TODO
+  IN_PROGRESS
+  COMPLETED
+}
+
 model User {
   id        Int     @id @default(autoincrement())
   name      String
@@ -19,7 +25,7 @@ model User {
 model Todo {
   id        Int      @id @default(autoincrement())
   title     String
-  completed Boolean  @default(false)
+  status    TodoStatus @default(TODO)
   createdAt DateTime @default(now())
 
   userId    Int
