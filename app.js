@@ -12,6 +12,14 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(basePath, 'views', 'index.html'))
 });
 
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(basePath, 'views', 'register.html'))
+});
+
+app.get('/todo-list', (req, res) => {
+    res.sendFile(path.join(basePath, 'views', 'todo-list.html'))
+});
+
 app.use(express.json());
 app.use('/api/', routes);
 

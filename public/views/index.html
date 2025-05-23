@@ -3,9 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>To Do App</title>
+  <script>
+    window.onload = function () {
+      const sessionToken = localStorage.getItem('todo');
+
+      if (sessionToken) {
+        // Session exists, redirect to /todo
+        window.location.href = '/todo-list';
+      } else {
+        // No session, redirect to /register
+        window.location.href = '/register';
+      }
+    };
+  </script>
 </head>
 <body>
-  <h1>To-Do List</h1>
+  <h1>Welcome</h1>
   
 </body>
 </html>
