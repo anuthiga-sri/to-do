@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Todo</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <h2>Create a New Todo</h2>
+    <form id="todoForm">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required />
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="4"></textarea>
+
+        <label for="dueDate">Due Date:</label>
+        <input type="date" id="dueDate" name="dueDate" required />
+
+        <button id="create" type="submit">Create</button>
+    </form>
+
+    <p id="responseMessage"></p>
+
+    <script>
+        window.onload = function () {
+            const sessionToken = localStorage.getItem('todo');
+
+            if (!sessionToken) {
+                window.location.href = '/register';
+            }
+        };
+
+        document.getElementById('todoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const createButton = document.getElementById('create');
+            const todoForm = document.getElementById('todoForm');
+            const responseMessageElement = document.getElementById('responseMessage');
+            createButton.disabled = true;
+
+            const formData = new FormData(todoForm);
+            const title = formData.get('title');
+            const description = formData.get('description');
+            const dueDate = formData.get('dueDate');
+
+            const user = JSON.parse(localStorage.getItem('todo'));
+
+            try {
+                const res = await fetch('/api/todos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title,
+                        description,
+                        dueDate,
+                        userId: user.id
+                    }),
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    responseMessageElement.textContent = 'Todo created successfully!';
+                    document.getElementById('todoForm').reset();
+                    window.location.href = '/todo-list';
+                } else {
+                    responseMessageElement.textContent = data.error || 'Failed to create todo.';
+                }
+            } catch (err) {
+                responseMessageElement.textContent = 'An error occurred.';
+                console.error(err);
+            } finally {
+                createButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

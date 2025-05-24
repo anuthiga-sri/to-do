@@ -20,6 +20,10 @@ app.get('/todo-list', (req, res) => {
     res.sendFile(path.join(basePath, 'views', 'todo-list.html'))
 });
 
+app.get('/todo-create', (req, res) => {
+    res.sendFile(path.join(basePath, 'views', 'todo-create.html'))
+});
+
 app.use(express.json());
 app.use('/api/', routes);
 
