@@ -8,10 +8,8 @@
       const sessionToken = localStorage.getItem('todo');
 
       if (sessionToken) {
-        // Session exists, redirect to /todo
         window.location.href = '/todo-list';
       } else {
-        // No session, redirect to /register
         window.location.href = '/register';
       }
     };

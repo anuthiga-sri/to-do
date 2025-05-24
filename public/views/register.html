@@ -23,6 +23,14 @@
     <p id="responseMessage"></p>
 
     <script>
+        window.onload = function () {
+            const sessionToken = localStorage.getItem('todo');
+
+            if (sessionToken) {
+                window.location.href = '/todo-list';
+            }
+        };
+
         const form = document.getElementById('registerForm');
         const responseMessageElement = document.getElementById('responseMessage');
         const registerButton = document.getElementById('register');
