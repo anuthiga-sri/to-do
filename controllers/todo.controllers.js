@@ -33,3 +33,21 @@ exports.addTodo = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 }
+
+exports.updateTodo = async (req, res) => {
+  const { todoId } = req.params;
+  const { userId } = req.body;
+  delete req.body.userId;
+
+  try {
+    const updatedTodo = await prisma.todo.update({
+      where: { id: Number(todoId), userId: Number(userId) },
+      data: { ...req.body }
+    });
+
+    res.status(200).json({ message: 'Todo updated successfully.', todo: updatedTodo });
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+}
