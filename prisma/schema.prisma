@@ -32,4 +32,16 @@ model Todo {
 
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+
+  todoHistories     TodoHistory[]   // 1-to-many relation
+}
+
+model TodoHistory {
+  id         Int      @id @default(autoincrement())
+  oldStatus  TodoStatus
+  newStatus  TodoStatus
+  changedAt  DateTime @default(now())
+
+  todoId     Int
+  todo       Todo     @relation(fields: [todoId], references: [id])
 }
