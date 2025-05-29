@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Todo List</title>
+    <link rel="stylesheet" href="../css/style.css" />
+</head>
+
+<body>
+    <div class="todo-wrapper">
+        <a href="/" class="back">Back</a>
+        <div class="todo-list-header">
+            <h2>Todo Lists</h2>
+        </div>
+
+        <div class="board">
+            <div class="todo-column" id="TODO" ondragover="allowDrop(event)" ondrop="drop(event, 'TODO')">
+                <div class="column-title">ToDo</div>
+            </div>
+            <div class="todo-column" id="IN_PROGRESS" ondragover="allowDrop(event)" ondrop="drop(event, 'IN_PROGRESS')">
+                <div class="column-title">In Progress</div>
+            </div>
+            <div class="todo-column" id="COMPLETED" ondragover="allowDrop(event)" ondrop="drop(event, 'COMPLETED')">
+                <div class="column-title">Complete</div>
+            </div>
+        </div>
+
+        <p class="error" id="errorMessage"></p>
+    </div>
+
+    <script>
+
+
+        const errorMessage = document.getElementById('errorMessage');
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        async function fetchTodos() {
+            try {
+                const user = JSON.parse(localStorage.getItem('todo'));
+                const res = await fetch(`/api/todos?userId=0`);
+                if (!res.ok) throw new Error('Failed to fetch todos');
+
+                const { todoList } = await res.json();
+                if (!todoList.length) {
+                    errorMessage.textContent = 'No todos found.';
+                    return;
+                }
+
+                todoList.forEach(todo => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+            <b>${todo.title}</b>
+            <div>${todo.user.name}</div>
+            <div class="card-date">${formatDate(todo.dueDate)}</div>
+          `;
+                    card.onclick = () => window.location.href = `/todo-item/${todo.id}`;
+
+                    const container = document.getElementById(todo.status || 'TODO'); // default to ToDo
+                    if (container) container.appendChild(card);
+                });
+            } catch (err) {
+                errorMessage.textContent = err.message || 'Error loading todos';
+            }
+        }
+
+        fetchTodos();
+
+    </script>
+</body>
+
+</html>

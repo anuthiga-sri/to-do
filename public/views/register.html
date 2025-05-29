@@ -1,27 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Register</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
-    <h2>Register</h2>
-    <form id="registerForm">
-        <label>
-            Name:
-            <input type="text" name="name" required />
-        </label><br><br>
-        <label>
-            Email:
-            <input type="email" name="email" required />
-        </label><br><br>
-        <button id="register" type="submit">Register</button>
-    </form>
-
-    <p id="responseMessage"></p>
+    <div class="form-container">
+        <a href="/" class="back">Back</a>
+        <h2>Register</h2>
+        <form id="registerForm">
+            <label>
+                Name:
+                <input type="text" name="name" required />
+            </label><br><br>
+            <label>
+                Email:
+                <input type="email" name="email" required />
+            </label><br><br>
+            <button id="register" type="submit">Register</button>
+        </form>
+        <p id="responseMessage"></p>
+    </div>
 
     <script>
         window.onload = function () {

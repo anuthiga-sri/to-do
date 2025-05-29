@@ -1,21 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../css/style.css">
   <title>To Do App</title>
-  <script>
-    window.onload = function () {
-      const sessionToken = localStorage.getItem('todo');
-
-      if (sessionToken) {
-        window.location.href = '/todo-list';
-      } else {
-        window.location.href = '/register';
-      }
-    };
-  </script>
 </head>
+
 <body>
-  <h1>Welcome</h1>
+  <div class="index-outer-div">
+    <h1>Are you</h1>
+
+    <div class="radio-group">
+      <label>
+        <input type="radio" name="role" value="user" onchange="handleRoleChange(this.value)" />
+        User
+      </label>
+      <label>
+        <input type="radio" name="role" value="admin" onchange="handleRoleChange(this.value)" />
+        Admin
+      </label>
+    </div>
+
+  </div>
+
+  <script>
+    function handleRoleChange(role) {
+      if (role === 'user') {
+        const sessionToken = localStorage.getItem('todo');
+        window.location.href = sessionToken ? '/todo-list' : '/register';
+      } else if (role === 'admin') {
+        window.location.href = '/admin/todo-list';
+      }
+    }
+  </script>
 </body>
+
 </html>

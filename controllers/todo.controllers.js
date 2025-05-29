@@ -4,11 +4,22 @@ const prisma = new PrismaClient();
 exports.getTodoListOfAUser = async (req, res) => {
   const userId = req.query.userId;
   if (!userId) return res.status(400).json({ error: 'Missing userId' });
+  let todos;
 
   try {
-    const todos = await prisma.todo.findMany({
-      where: { userId: Number(userId) }
-    });
+    if (Number(userId) === 0) {
+      todos = await prisma.todo.findMany({
+        include: {
+          todoHistories: true,
+          user: true
+        }
+      });
+    } else {
+      todos = await prisma.todo.findMany({
+        where: { userId: Number(userId) }
+      });
+    }
+   
     res.status(200).json({ message: 'Successfully retrieved todo list.', todoList: todos });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch todos' });
