@@ -123,7 +123,10 @@ button {
     border-radius: 8px;
     padding: 10px;
     background: #f9f9f9;
-    min-height: 300px;
+    min-height: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
 .column-title {
@@ -146,11 +149,19 @@ button {
     justify-content: space-between;
 }
 
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    margin-top: 8px;
+}
+
+.card-user {
+    color: #333;
+}
+
 .card-date {
-    margin-top: 10px;
-    text-align: right;
-    font-size: 0.5em;
-    color: #555;
+    color: #888;
 }
 
 .radio-group {
@@ -218,4 +229,40 @@ button {
 
 .hidden {
     display: none;
+}
+
+.timeline {
+    position: relative;
+    margin: 20px 0;
+    padding-left: 30px;
+    border-left: 2px solid #ddd;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 10px 0 10px 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 15px;
+    width: 12px;
+    height: 12px;
+    background-color: #3498db;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #3498db;
+}
+
+.timeline-item strong {
+    color: #2c3e50;
+}
+
+.timeline-item time {
+    display: block;
+    color: #999;
+    font-size: 0.85em;
+    margin-top: 3px;
 }

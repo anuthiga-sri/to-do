@@ -14,34 +14,44 @@ enum TodoStatus {
 }
 
 model User {
-  id        Int     @id @default(autoincrement())
-  name      String
-  email     String  @unique
-  createdAt DateTime @default(now())
+  id         Int     @id @default(autoincrement()) @map("id")
+  name       String  @map("name")
+  email      String  @unique @map("email")
+  createdAt  DateTime @default(now()) @map("created_at")
 
-  todos     Todo[]   // 1-to-many relation
+  todos      Todo[]  @relation("UserTodos")
+
+  @@map("users")
 }
 
 model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  description String?
-  status    TodoStatus @default(TODO)
-  dueDate   DateTime
-  createdAt DateTime @default(now())
+  id           Int         @id @default(autoincrement()) @map("id")
+  title        String      @map("title")
+  description  String?     @map("description")
+  status       TodoStatus  @default(TODO) @map("status")
+  dueDate      DateTime    @map("due_date")
+  createdAt    DateTime    @default(now()) @map("created_at")
 
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  userId       Int         @map("user_id")
+  user         User        @relation("UserTodos", fields: [userId], references: [id])
+  todoHistories TodoHistory[] @relation("TodoToHistory")
 
-  todoHistories     TodoHistory[]   // 1-to-many relation
+  @@index([userId], name: "todo_user_id_idx")
+  @@index([dueDate], name: "todo_due_date_idx")
+  @@map("todos")
 }
 
 model TodoHistory {
-  id         Int      @id @default(autoincrement())
-  oldStatus  TodoStatus
-  newStatus  TodoStatus
-  changedAt  DateTime @default(now())
+  id         Int         @id @default(autoincrement()) @map("id")
+  oldStatus  TodoStatus  @map("old_status")
+  newStatus  TodoStatus  @map("new_status")
+  changedAt  DateTime    @default(now()) @map("changed_at")
 
-  todoId     Int
-  todo       Todo     @relation(fields: [todoId], references: [id])
+  todoId     Int         @map("todo_id")
+  todo       Todo        @relation("TodoToHistory", fields: [todoId], references: [id])
+
+  @@index([todoId], name: "todo_history_todo_id_idx")
+  @@index([newStatus], name: "todo_history_new_status_idx")
+  @@index([changedAt], name: "todo_history_changed_at_idx")
+  @@map("todo_histories")
 }

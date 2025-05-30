@@ -27,10 +27,49 @@
         </div>
 
         <p class="error" id="errorMessage"></p>
+
+        <div id="spinner-overlay" class="overlay">
+            <div id="spinner" class="spinner"></div>
+        </div>
+
+        <div id="todo-history" class="history-section" style="display: none;">
+            <h3 id="todo-history-heading">Todo History</h3>
+            <div id="history-loader" class="spinner" style="display: none;"></div>
+            <div id="history-content" class="timeline"></div>
+        </div>
     </div>
 
     <script>
+        async function loadHistory(todoId, title) {
+            document.getElementById('todo-history-heading').innerHTML = title;
+            const historySection = document.getElementById('todo-history');
+            const historyContent = document.getElementById('history-content');
+            const historyLoader = document.getElementById('history-loader');
 
+            historySection.style.display = 'block';
+            historyContent.innerHTML = '';
+            historyLoader.style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/todos/${todoId}/history`);
+                if (!res.ok) throw new Error('Failed to fetch history');
+                const { todoHistories } = await res.json();
+
+                historyContent.innerHTML = todoHistories.map(todoHistory =>
+                    `
+                    <div class="timeline-item">
+                        <strong>${todoHistory.oldStatus}</strong> → <strong>${todoHistory.newStatus}</strong>
+                        <time>${formatDate(todoHistory.changedAt)}</time>
+                    </div>
+                    `
+                ).join('');
+            } catch (err) {
+                historyContent.innerHTML = `<p class="error">${err.message}</p>`;
+            } finally {
+                historyLoader.style.display = 'none';
+                historySection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
 
         const errorMessage = document.getElementById('errorMessage');
 
@@ -40,6 +79,8 @@
         }
 
         async function fetchTodos() {
+            const overlay = document.getElementById('spinner-overlay');
+            overlay.style.display = 'flex';
             try {
                 const user = JSON.parse(localStorage.getItem('todo'));
                 const res = await fetch(`/api/todos?userId=0`);
@@ -56,16 +97,19 @@
                     card.className = 'card';
                     card.innerHTML = `
             <b>${todo.title}</b>
-            <div>${todo.user.name}</div>
-            <div class="card-date">${formatDate(todo.dueDate)}</div>
-          `;
-                    card.onclick = () => window.location.href = `/todo-item/${todo.id}`;
+            <div class="card-footer">
+                <span class="card-user">${todo.user.name}</span>
+                <span class="card-date">${formatDate(todo.dueDate)}</span>
+            </div>`;
+                    card.onclick = () => loadHistory(todo.id, todo.title);
 
-                    const container = document.getElementById(todo.status || 'TODO'); // default to ToDo
+                    const container = document.getElementById(todo.status || 'TODO');
                     if (container) container.appendChild(card);
                 });
             } catch (err) {
                 errorMessage.textContent = err.message || 'Error loading todos';
+            } finally {
+                overlay.style.display = 'none';
             }
         }
 

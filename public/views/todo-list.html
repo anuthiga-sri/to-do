@@ -70,7 +70,7 @@
             <b>${todo.title}</b>
             <div class="card-date">${formatDate(todo.dueDate)}</div>
           `;
-                    card.onclick = () => window.location.href = `/todo-item/${todo.id}`;
+                    // card.onclick = () => window.location.href = `/todo-item/${todo.id}`;
                     card.setAttribute('draggable', true);
                     card.setAttribute('data-id', todo.id);
                     card.setAttribute('data-status', todo.status);

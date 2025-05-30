@@ -7,6 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/anuthiga-sri/to-do.git"
@@ -24,7 +27,11 @@
     "joi": "^17.13.3"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.8.0",
+    "@types/node": "^22.15.26",
     "nodemon": "^3.1.10",
-    "prisma": "^6.8.2"
+    "prisma": "^6.8.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }
