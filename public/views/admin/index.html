@@ -58,7 +58,7 @@
                 historyContent.innerHTML = todoHistories.map(todoHistory =>
                     `
                     <div class="timeline-item">
-                        <strong>${todoHistory.oldStatus}</strong> → <strong>${todoHistory.newStatus}</strong>
+                        <strong  class="status-old">${todoHistory.oldStatus}</strong> → <strong  class="status-new">${todoHistory.newStatus}</strong>
                         <time>${formatDate(todoHistory.changedAt)}</time>
                     </div>
                     `
@@ -96,12 +96,16 @@
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
-            <b>${todo.title}</b>
-            <div class="card-footer">
-                <span class="card-user">${todo.user.name}</span>
-                <span class="card-date">${formatDate(todo.dueDate)}</span>
-            </div>`;
-                    card.onclick = () => loadHistory(todo.id, todo.title);
+                        <b>${todo.title}</b>
+                        <div class="card-footer">
+                            <span class="card-user">${todo.user.name}</span>
+                            <span class="card-date">${formatDate(todo.dueDate)}</span>
+                        </div>
+                    `;
+                    if (todo.status !== 'TODO') {
+                        card.style.cursor = 'pointer';
+                        card.onclick = () => loadHistory(todo.id, todo.title);
+                    }
 
                     const container = document.getElementById(todo.status || 'TODO');
                     if (container) container.appendChild(card);
