@@ -104,10 +104,21 @@ async function main() {
         console.log({ name, email });
 
         for (let j = 0; j < 10; j++) {
-            const dueDate = faker.date.past({ years: 1 });
-            const oneMonthEarlierDueDate = new Date(dueDate);
-            oneMonthEarlierDueDate.setMonth(dueDate.getMonth() - 1);
-            const createdAt = faker.date.between({ from: oneMonthEarlierDueDate, to: dueDate });
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 6);
+
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 3);
+
+            const dueDate = faker.date.between({ from: startDate, to: endDate });
+            let createdAt = new Date();
+
+            if (dueDate < createdAt) {
+                const oneMonthEarlierDueDate = new Date(dueDate);
+                oneMonthEarlierDueDate.setMonth(dueDate.getMonth() - 1);
+                createdAt = faker.date.between({ from: oneMonthEarlierDueDate, to: dueDate });
+            }
+            
             const status = faker.helpers.arrayElement([TodoStatus.TODO, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]);
             const title = faker.helpers.arrayElement(todoItems);
 

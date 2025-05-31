@@ -9,7 +9,10 @@
 
 <body>
     <div class="todo-wrapper">
-        <a href="/" class="back">Back</a>
+        <div class="admin-links">
+            <a href="/" class="back">Back</a>
+            <a href="/admin/reports">Reports</a>
+        </div>
         <div class="todo-list-header">
             <h2>Todo Lists</h2>
         </div>
@@ -36,15 +39,18 @@
             <h3 id="todo-history-heading">Todo History</h3>
             <div id="history-loader" class="spinner" style="display: none;"></div>
             <div id="history-content" class="timeline"></div>
+            <div id="history-error"></div>
         </div>
     </div>
 
     <script>
+
         async function loadHistory(todoId, title) {
             document.getElementById('todo-history-heading').innerHTML = title;
             const historySection = document.getElementById('todo-history');
             const historyContent = document.getElementById('history-content');
             const historyLoader = document.getElementById('history-loader');
+            const errorMessage = document.getElementById('history-error');
 
             historySection.style.display = 'block';
             historyContent.innerHTML = '';
@@ -52,7 +58,13 @@
 
             try {
                 const res = await fetch(`/api/todos/${todoId}/history`);
-                if (!res.ok) throw new Error('Failed to fetch history');
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    errorMessage.textContent = errorData.error || 'Failed to fetch todo history.';
+                    errorMessage.style.color = 'red';
+                    return;
+                }
+
                 const { todoHistories } = await res.json();
 
                 historyContent.innerHTML = todoHistories.map(todoHistory =>
@@ -64,14 +76,15 @@
                     `
                 ).join('');
             } catch (err) {
-                historyContent.innerHTML = `<p class="error">${err.message}</p>`;
+                errorMessage.textContent = err.message || 'Failed to fetch todo history.';
+                errorMessage.style.color = 'red';
             } finally {
                 historyLoader.style.display = 'none';
                 historySection.scrollIntoView({ behavior: 'smooth' });
             }
         }
 
-        const errorMessage = document.getElementById('errorMessage');
+
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -79,12 +92,18 @@
         }
 
         async function fetchTodos() {
+            const errorMessage = document.getElementById('errorMessage');
             const overlay = document.getElementById('spinner-overlay');
             overlay.style.display = 'flex';
             try {
                 const user = JSON.parse(localStorage.getItem('todo'));
-                const res = await fetch(`/api/todos?userId=0`);
-                if (!res.ok) throw new Error('Failed to fetch todos');
+                const res = await fetch(`/api/todos/0`);
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    errorMessage.textContent = errorData.error || 'Failed to fetch todo.';
+                    errorMessage.style.color = 'red';
+                    return;
+                }
 
                 const { todoList } = await res.json();
                 if (!todoList.length) {

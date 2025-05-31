@@ -54,12 +54,20 @@
 
             try {
                 const user = JSON.parse(localStorage.getItem('todo'));
-                const res = await fetch(`/api/todos?userId=${user.id}`);
-                if (!res.ok) throw new Error('Failed to fetch todos');
+                const res = await fetch(`/api/todos/${user.id}`);
+                console.log(res)
+
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    errorMessage.textContent = errorData.error || 'Failed to fetch todo.';
+                    errorMessage.style.color = 'red';
+                    return;
+                }
 
                 const { todoList } = await res.json();
                 if (!todoList.length) {
                     errorMessage.textContent = 'No todos found.';
+                    errorMessage.style.color = 'red';
                     return;
                 }
 
@@ -87,6 +95,7 @@
                 });
             } catch (err) {
                 errorMessage.textContent = err.message || 'Error loading todos';
+                errorMessage.style.color = 'red';
             } finally {
                 overlay.style.display = 'none';
             }
@@ -119,9 +128,17 @@
                     body: JSON.stringify({ status: newStatus, userId: user.id })
                 });
 
-                if (!response.ok) throw new Error('Failed to update todo');
+                if (!response.ok) {
+                    const errorData = await res.json();
+                    errorMessage.textContent = errorData.error || 'Failed to update the status.';
+                    errorMessage.style.color = 'red';
+                    document.getElementById(oldStatus).appendChild(card);
+                    card.setAttribute('data-status', oldStatus);
+                    return;
+                }
             } catch (err) {
-                alert(err.message);
+                errorMessage.textContent = errorData.error || 'Failed to update the status.';
+                errorMessage.style.color = 'red';
                 document.getElementById(oldStatus).appendChild(card);
                 card.setAttribute('data-status', oldStatus);
             } finally {

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report</title>
+    <link rel="stylesheet" href="../../css/style.css" />
+</head>
+
+<body>
+    <div class="todo-wrapper">
+        <a href="/" class="back">Back</a>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)"/>
+                Statistic
+            </label>
+            <label>
+                <input type="radio" name="reportType" value="overdue" onchange="handleReportTypeChange(this.value)" checked/>
+                Overdue
+            </label>
+            <label>
+                <input type="radio" name="reportType" value="late-completion"
+                    onchange="handleReportTypeChange(this.value)" />
+                Late Completion
+            </label>
+        </div>
+
+    </div>
+
+    <script>
+
+        function handleReportTypeChange(reportType) {
+            window.location.href = `/admin/reports/${reportType}`;
+        }
+
+
+    </script>
+</body>
+
+</html>

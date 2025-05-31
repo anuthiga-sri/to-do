@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report</title>
+    <link rel="stylesheet" href="../../css/style.css" />
+</head>
+
+<body>
+    <div class="todo-wrapper">
+        <a href="/" class="back">Back</a>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)"
+                    checked />
+                Statistic
+            </label>
+            <label>
+                <input type="radio" name="reportType" value="overdue" onchange="handleReportTypeChange(this.value)" />
+                Overdue
+            </label>
+            <label>
+                <input type="radio" name="reportType" value="late-completion"
+                    onchange="handleReportTypeChange(this.value)" />
+                Late Completion
+            </label>
+        </div>
+        <div id="spinner" class="spinner-overlay">
+            <div class="spinner"></div>
+        </div>
+        <div id="report-table-container"></div>
+    </div>
+
+    <script>
+        window.onload = async function () {
+            const spinner = document.getElementById('spinner');
+            const container = document.getElementById('report-table-container');
+            spinner.style.display = 'flex';
+            try {
+                const res = await fetch('/api/admin/statistic');
+                const { result } = await res.json();
+
+                if (!res.ok) {
+                    container.innerHTML = '<p class="error">Failed to load report.</p>';
+                    return;
+                }
+
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                        <th>Name</th>
+                        <th>To Do <span class=error>(Overdue)</span></th>
+                        <th>In Progress <span class=error>(Overdue)</span></th>
+                        <th>Completed</th>
+                        <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${result.map(user => `
+                        <tr>
+                            <td class="user-name">${user.user_name}</td>
+                            <td>
+                            ${user.todoCount}
+                            ${user.overdueTodoCount > 0 ? `<span class="overdue">(${user.overdueTodoCount})</span>` : ''}
+                            </td>
+                            <td>
+                            ${user.inProgressCount}
+                            ${user.overdueInProgressCount > 0 ? `<span class="overdue">(${user.overdueInProgressCount})</span>` : ''}
+                            </td>
+                            <td>${user.completedCount}</td>
+                            <td>${user.totalTodoCount}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                    `;
+
+                container.appendChild(table);
+            } catch (err) {
+                container.innerHTML = '<p class="error" style="color: red;">Network error</p>';
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        function handleReportTypeChange(reportType) {
+            window.location.href = `/admin/reports/${reportType}`;
+        }
+    </script>
+</body>
+
+</html>

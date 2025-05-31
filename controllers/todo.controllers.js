@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 exports.getTodoListOfAUser = async (req, res) => {
-  const { userId } = req.query;
+  const { userId } = req.params;
   if (!userId) return res.status(400).json({ error: 'Missing userId' });
   let todos;
 
@@ -69,7 +69,7 @@ exports.updateTodo = async (req, res) => {
       data: { ...req.body }
     });
 
-    if (isOnlyStatusChange && oldStatus) {
+    if (isOnlyStatusChange && oldStatus !== req.body.status) {
       await prisma.todoHistory.create({
         data: {
           todoId: Number(todoId),

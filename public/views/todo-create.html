@@ -67,14 +67,16 @@
                 const data = await res.json();
                 if (res.ok) {
                     responseMessageElement.textContent = 'Todo created successfully!';
+                    responseMessageElement.style.color = 'green';
                     document.getElementById('todoForm').reset();
                     window.location.href = '/todo-list';
                 } else {
                     responseMessageElement.textContent = data.error || 'Failed to create todo.';
+                    responseMessageElement.style.color = 'red';
                 }
             } catch (err) {
                 responseMessageElement.textContent = 'An error occurred.';
-                console.error(err);
+                responseMessageElement.style.color = 'red';
             } finally {
                 createButton.disabled = false;
             }

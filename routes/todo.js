@@ -5,7 +5,7 @@ const { getTodoListOfAUser, addTodo, updateTodo, getTodoHistory } = require('../
 
 const router = express.Router();
 
-router.get('/', getTodoListOfAUser);
+router.get('/:userId', getTodoListOfAUser);
 router.post('/', validate(addTodoSchema), addTodo);
 router.put('/:todoId', validate(updateTodoSchema), updateTodo);
 router.get('/:todoId/history', getTodoHistory);

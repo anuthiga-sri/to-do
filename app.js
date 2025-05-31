@@ -28,6 +28,22 @@ app.get('/admin/todo-list', (req, res) => {
     res.sendFile(path.join(basePath, 'views/admin', 'index.html'))
 });
 
+app.get('/admin/reports', (req, res) => {
+    res.sendFile(path.join(basePath, 'views/admin', 'reports.html'))
+});
+
+app.get('/admin/reports/statistic', (req, res) => {
+    res.sendFile(path.join(basePath, 'views/admin', 'reports.html'))
+});
+
+app.get('/admin/reports/overdue', (req, res) => {
+    res.sendFile(path.join(basePath, 'views/admin', 'overdue.html'))
+});
+
+app.get('/admin/reports/late-completion', (req, res) => {
+    res.sendFile(path.join(basePath, 'views/admin', 'late-completion.html'))
+});
+
 app.use(express.json());
 app.use('/api/', routes);
 
