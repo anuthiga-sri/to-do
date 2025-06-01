@@ -59,25 +59,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        ${result.map(user => `
-                        <tr>
-                            <td class="user-name">${user.user_name}</td>
+                        ${result.map(data => `
+                        <tr class="clickable-row" data-user-id="${data.user_id}" data-user-name="${data.user_name}">
+                            <td class="user-name">${data.user_name}</td>
                             <td>
-                            ${user.todoCount}
-                            ${user.overdueTodoCount > 0 ? `<span class="overdue">(${user.overdueTodoCount})</span>` : ''}
+                            ${data.todoCount}
+                            ${data.overdueTodoCount > 0 ? `<span class="overdue">(${data.overdueTodoCount})</span>` : ''}
                             </td>
                             <td>
-                            ${user.inProgressCount}
-                            ${user.overdueInProgressCount > 0 ? `<span class="overdue">(${user.overdueInProgressCount})</span>` : ''}
+                            ${data.inProgressCount}
+                            ${data.overdueInProgressCount > 0 ? `<span class="overdue">(${data.overdueInProgressCount})</span>` : ''}
                             </td>
-                            <td>${user.completedCount}</td>
-                            <td>${user.totalTodoCount}</td>
+                            <td>${data.completedCount}</td>
+                            <td>${data.totalTodoCount}</td>
                         </tr>
                         `).join('')}
                     </tbody>
                     `;
 
                 container.appendChild(table);
+
+                document.querySelectorAll('.clickable-row').forEach(row => {
+                    row.addEventListener('click', () => {
+                        const userId = row.getAttribute('data-user-id');
+                        const userName = row.getAttribute('data-user-name');
+                        window.location.href = `/admin/todo-list?id=${userId}&name=${userName}`;
+                    });
+                });
             } catch (err) {
                 container.innerHTML = '<p class="error" style="color: red;">Network error</p>';
             } finally {
