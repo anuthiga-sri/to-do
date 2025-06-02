@@ -118,7 +118,7 @@
                 card.innerHTML = `
                     <b>${todo.title}</b>
                     <div class="card-footer">
-                        <span class="card-user">${todo.user.name}</span>
+                        <span class="card-user">${todo.user?.name || ''}</span>
                         <span class="card-date">${formatDate(todo.dueDate)}</span>
                     </div>
                 `;
@@ -148,7 +148,7 @@
             const heading = document.querySelector('.todo-list-header h2');
             const backLink = document.querySelector('.admin-links a.back');
             const userSelect = document.getElementById('userSelect');
-            const userFilterContainer = document.getElementById('user-filter');
+            const userFilterContainer = document.querySelector('.user-filter');
 
             const userId = getQueryParam('id');
             const userName = getQueryParam('name');
