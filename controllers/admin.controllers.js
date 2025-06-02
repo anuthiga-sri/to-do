@@ -47,10 +47,36 @@ exports.getOverdue = async (req, res) => {
         todoHistories: true,
         user: true
       },
-      orderBy: {createdAt: 'asc'}
+      orderBy: { createdAt: 'asc' }
     });
 
     res.status(200).json({ message: 'Successfully retrieved todo list.', todoList: todos });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: 'Failed to fetch' });
+  }
+};
+
+exports.getLateCompletion = async (req, res) => {
+  try {
+    const lateCompletedTodos = await prisma.$queryRaw`
+      SELECT
+        t.id,
+        t.title,
+        t.due_date AS "dueDate",
+        tc.completed_at AS "completedAt",
+        u.id AS user_id,
+        u.name AS user_name
+      FROM
+        todos t
+      JOIN
+        todo_completion tc ON t.id = tc.todo_id
+      JOIN
+        users u ON t.user_id = u.id
+      WHERE
+        tc.completed_at > t.due_date
+    `;
+    res.status(200).json({ message: 'Successfully retrieved todo list.', todoList: lateCompletedTodos });
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: 'Failed to fetch' });

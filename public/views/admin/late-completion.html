@@ -13,7 +13,7 @@
         <a href="/" class="back">Back</a>
         <div class="radio-group">
             <label>
-                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)"/>
+                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)" />
                 Statistic
             </label>
             <label>
@@ -22,21 +22,162 @@
             </label>
             <label>
                 <input type="radio" name="reportType" value="late-completion"
-                    onchange="handleReportTypeChange(this.value)" checked/>
+                    onchange="handleReportTypeChange(this.value)" checked />
                 Late Completion
             </label>
+        </div>
+        <div class="board">
+            <div class="left-panel">
+                <div class="user-filter">
+                    <label for="userSelect">Filter by User:</label>
+                    <select id="userSelect" onchange="filterTodosByUser(this.value)">
+                        <option value="">All Users</option>
+                    </select>
+                </div>
+                <div class="todo-column" id="todo-list"></div>
+            </div>
+            <div class="right-panel">
+                <div id="todo-history" class="history-section" style="display: none;">
+                    <h3 id="todo-history-heading">Todo History</h3>
+                    <div id="history-loader" class="spinner" style="display: none;"></div>
+                    <div id="history-content" class="timeline"></div>
+                    <div id="history-error"></div>
+                </div>
+            </div>
+        </div>
+        <p class="error" id="errorMessage"></p>
+        <div id="spinner-overlay" class="overlay">
+            <div id="spinner" class="spinner"></div>
         </div>
 
     </div>
 
     <script>
-
         function handleReportTypeChange(reportType) {
             window.location.href = `/admin/reports/${reportType}`;
         }
 
+        async function loadHistory(todo) {
+            document.getElementById('todo-history-heading').innerHTML = todo.title;
+            const historySection = document.getElementById('todo-history');
+            const historyContent = document.getElementById('history-content');
+            const historyLoader = document.getElementById('history-loader');
+            const errorMessage = document.getElementById('history-error');
 
+            historySection.style.display = 'block';
+            historyContent.innerHTML = '';
+            historyLoader.style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/todos/${todo.id}/history`);
+                const { todoHistories } = await res.json();
+
+                if (!res.ok) {
+                    errorMessage.textContent = todoHistories?.error || 'Failed to fetch todo history.';
+                    errorMessage.style.color = 'red';
+                    return;
+                }
+                const dueDate = new Date(todo.dueDate);
+                historyContent.innerHTML = todoHistories.map(todoHistory => {
+                    const changedAt = new Date(todoHistory.changedAt);
+                    const isLate = changedAt > dueDate;
+                    return `
+                        <div class="timeline-item${isLate ? ' late-change' : ''}">
+                            <strong class="status-old">${todoHistory.oldStatus}</strong> → 
+                            <strong class="status-new">${todoHistory.newStatus}</strong>
+                            <time>${formatDate(todoHistory.changedAt)}</time>
+                            ${isLate ? '<span class="late-note">(After Due Date)</span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                historyContent.innerHTML += `
+                    <div class="timeline-item created">
+                        <em>Item Created</em>
+                        <div><time>${formatDate(todo.createdAt)}</time></div>
+                    </div>
+                `;
+            } catch (err) {
+                errorMessage.textContent = err.message || 'Failed to fetch todo history.';
+                errorMessage.style.color = 'red';
+            } finally {
+                historyLoader.style.display = 'none';
+                historySection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function renderTodos(todos) {
+            document.getElementById('todo-history-heading').innerHTML = '';
+            document.getElementById('history-content').innerHTML = '';
+            document.getElementById('history-error').innerHTML = '';
+            const todoListContainer = document.getElementById('todo-list');
+            todoListContainer.innerHTML = '';
+
+            todos.forEach(todo => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <b>${todo.title}</b>
+                    <div class="card-footer">
+                        <span class="card-user">${todo.user_name}</span>
+                        <span class="card-date">${formatDate(todo.dueDate)}</span>
+                    </div>
+                `;
+                card.style.cursor = 'pointer';
+                card.onclick = () => {
+                    highlightSelectedCard(card);
+                    loadHistory(todo);
+                };
+
+                todoListContainer.appendChild(card);
+            });
+        }
+
+        function filterTodosByUser(userId) {
+            if (!userId) {
+                renderTodos(allTodos);
+            } else {
+                const filtered = allTodos.filter(todo => todo.user_id == userId);
+                renderTodos(filtered);
+            }
+        }
+
+        async function fetchLateCompletionTodos() {
+            const errorMessage = document.getElementById('errorMessage');
+            const overlay = document.getElementById('spinner-overlay');
+            const userSelect = document.getElementById('userSelect');
+            overlay.style.display = 'flex';
+
+            try {
+                const res = await fetch('/api/admin/late-completion');
+                const { todoList } = await res.json();
+
+                if (!res.ok || !todoList.length) {
+                    errorMessage.textContent = 'No todos found.';
+                    return;
+                }
+
+                allTodos = todoList;
+
+                const users = [...new Set(todoList.map(todo => `${todo.user_id}|${todo.user_name}`))];
+                users.forEach(userStr => {
+                    const [id, name] = userStr.split('|');
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = name;
+                    userSelect.appendChild(option);
+                });
+
+                renderTodos(todoList);
+            } catch (err) {
+                errorMessage.textContent = err.message || 'Error loading todos';
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+        window.onload = fetchLateCompletionTodos();
     </script>
+    <script src="../../script/index.js"></script>
 </body>
 
 </html>
