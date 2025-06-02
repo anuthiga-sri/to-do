@@ -327,13 +327,23 @@ th {
     outline: 2px solid #4caf50;
     background-color: #f0fff0;
 }
+
 .timeline-item.late-change {
     border-left: 4px solid red;
     padding-left: 0.5em;
 }
+
 .late-note {
     color: red;
     font-size: 0.9em;
     margin-left: 0.5em;
 }
 
+.user-filter {
+    margin: 1rem 0;
+}
+
+.user-filter select {
+    padding: 0.4rem;
+    font-size: 1rem;
+}

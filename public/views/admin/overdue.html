@@ -27,6 +27,12 @@
                 Late Completion
             </label>
         </div>
+        <div class="user-filter">
+            <label for="userSelect">Filter by User:</label>
+            <select id="userSelect" onchange="filterTodosByUser(this.value)">
+                <option value="">All Users</option>
+            </select>
+        </div>
         <div class="board">
             <div class="todo-column" id="TODO" ondragover="allowDrop(event)" ondrop="drop(event, 'TODO')">
                 <div class="column-title">ToDo</div>
@@ -35,27 +41,20 @@
                 <div class="column-title">In Progress</div>
             </div>
         </div>
-
         <p class="error" id="errorMessage"></p>
-
         <div id="spinner-overlay" class="overlay">
             <div id="spinner" class="spinner"></div>
         </div>
-
         <div id="todo-history" class="history-section" style="display: none;">
             <h3 id="todo-history-heading">Todo History</h3>
             <div id="history-loader" class="spinner" style="display: none;"></div>
             <div id="history-content" class="timeline"></div>
             <div id="history-error"></div>
         </div>
-
     </div>
 
     <script>
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
+        let allTodos = [];
 
         function handleReportTypeChange(reportType) {
             window.location.href = `/admin/reports/${reportType}`;
@@ -110,9 +109,51 @@
             }
         }
 
+        function renderTodos(todos) {
+            document.getElementById('todo-history-heading').innerHTML = '';
+            document.getElementById('history-content').innerHTML = '';
+            document.getElementById('history-error').innerHTML = '';
+
+            ['TODO', 'IN_PROGRESS'].forEach(status => {
+                const col = document.getElementById(status);
+                if (col) col.innerHTML = `<div class="column-title">${status.replace('_', ' ')}</div>`;
+            });
+
+            todos.forEach(todo => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <b>${todo.title}</b>
+                    <div class="card-footer">
+                        <span class="card-user">${todo.user.name}</span>
+                        <span class="card-date">${formatDate(todo.dueDate)}</span>
+                    </div>
+                `;
+                card.style.cursor = 'pointer';
+                card.onclick = () => {
+                    highlightSelectedCard(card);
+                    loadHistory(todo);
+                };
+
+                const container = document.getElementById(todo.status || 'TODO');
+                if (container) container.appendChild(card);
+            });
+        }
+
+        function filterTodosByUser(userId) {
+            if (!userId) {
+                renderTodos(allTodos);
+            } else {
+                const filtered = allTodos.filter(todo => todo.user.id == userId);
+                renderTodos(filtered);
+            }
+        }
+
+
         async function fetchOverdueTodos() {
             const errorMessage = document.getElementById('errorMessage');
             const overlay = document.getElementById('spinner-overlay');
+            const userSelect = document.getElementById('userSelect');
             overlay.style.display = 'flex';
 
             try {
@@ -124,33 +165,24 @@
                     return;
                 }
 
-                todoList.forEach(todo => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <b>${todo.title}</b>
-                        <div class="card-footer">
-                            <span class="card-user">${todo.user.name}</span>
-                            <span class="card-date">${formatDate(todo.dueDate)}</span>
-                        </div>
-                    `;
-
-                    card.style.cursor = 'pointer';
-                    card.onclick = () => {
-                        highlightSelectedCard(card);
-                        loadHistory(todo);
-                    }
-
-                    const container = document.getElementById(todo.status || 'TODO');
-                    if (container) container.appendChild(card);
+                allTodos = todoList;
+                
+                const users = [...new Set(todoList.map(todo => `${todo.user.id}|${todo.user.name}`))];
+                users.forEach(userStr => {
+                    const [id, name] = userStr.split('|');
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = name;
+                    userSelect.appendChild(option);
                 });
+
+                renderTodos(todoList);
             } catch (err) {
                 errorMessage.textContent = err.message || 'Error loading todos';
             } finally {
                 overlay.style.display = 'none';
             }
         }
-
         window.onload = fetchOverdueTodos();
 
     </script>

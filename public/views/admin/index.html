@@ -17,6 +17,13 @@
             <h2>Todo Lists</h2>
         </div>
 
+        <div class="user-filter">
+            <label for="userSelect">Filter by User:</label>
+            <select id="userSelect" onchange="filterTodosByUser(this.value)">
+                <option value="">All Users</option>
+            </select>
+        </div>
+
         <div class="board">
             <div class="todo-column" id="TODO" ondragover="allowDrop(event)" ondrop="drop(event, 'TODO')">
                 <div class="column-title">ToDo</div>
@@ -44,6 +51,8 @@
     </div>
     <script src="../../script/index.js"></script>
     <script>
+        let allTodos = [];
+
         async function loadHistory(todo) {
             document.getElementById('todo-history-heading').innerHTML = todo.title;
             const historySection = document.getElementById('todo-history');
@@ -93,11 +102,53 @@
             }
         }
 
+        function renderTodos(todos) {
+            document.getElementById('todo-history-heading').innerHTML = '';
+            document.getElementById('history-content').innerHTML = '';
+            document.getElementById('history-error').innerHTML = '';
+
+            ['TODO', 'IN_PROGRESS', 'COMPLETED'].forEach(status => {
+                const col = document.getElementById(status);
+                if (col) col.innerHTML = `<div class="column-title">${status.replace('_', ' ')}</div>`;
+            });
+
+            todos.forEach(todo => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <b>${todo.title}</b>
+                    <div class="card-footer">
+                        <span class="card-user">${todo.user.name}</span>
+                        <span class="card-date">${formatDate(todo.dueDate)}</span>
+                    </div>
+                `;
+                card.style.cursor = 'pointer';
+                card.onclick = () => {
+                    highlightSelectedCard(card);
+                    loadHistory(todo);
+                };
+
+                const container = document.getElementById(todo.status || 'TODO');
+                if (container) container.appendChild(card);
+            });
+        }
+
+        function filterTodosByUser(userId) {
+            if (!userId) {
+                renderTodos(allTodos);
+            } else {
+                const filtered = allTodos.filter(todo => todo.user.id == userId);
+                renderTodos(filtered);
+            }
+        }
+
         async function fetchTodos() {
             const errorMessage = document.getElementById('errorMessage');
             const overlay = document.getElementById('spinner-overlay');
             const heading = document.querySelector('.todo-list-header h2');
             const backLink = document.querySelector('.admin-links a.back');
+            const userSelect = document.getElementById('userSelect');
+            const userFilterContainer = document.getElementById('user-filter');
 
             const userId = getQueryParam('id');
             const userName = getQueryParam('name');
@@ -113,30 +164,24 @@
                     return;
                 }
 
-                if (userId && todoList.length > 0) {
+                allTodos = todoList;
+
+                if (userId) {
                     heading.textContent = `Todo List of ${userName}`;
                     backLink.href = '/admin/reports';
+                    userFilterContainer.style.display = 'none';
+                } else {
+                    const users = [...new Set(todoList.map(todo => `${todo.user.id}|${todo.user.name}`))];
+                    users.forEach(userStr => {
+                        const [id, name] = userStr.split('|');
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = name;
+                        userSelect.appendChild(option);
+                    });
                 }
 
-                todoList.forEach(todo => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <b>${todo.title}</b>
-                        <div class="card-footer">
-                            <span class="card-user">${userId ? '' : todo.user.name}</span>
-                            <span class="card-date">${formatDate(todo.dueDate)}</span>
-                        </div>
-                    `;
-                    card.style.cursor = 'pointer';
-                    card.onclick = () => {
-                        highlightSelectedCard(card); 
-                        loadHistory(todo);
-                    }
-
-                    const container = document.getElementById(todo.status || 'TODO');
-                    if (container) container.appendChild(card);
-                });
+                renderTodos(todoList);
             } catch (err) {
                 errorMessage.textContent = err.message || 'Error loading todos';
             } finally {
