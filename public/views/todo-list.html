@@ -34,19 +34,7 @@
 
     </div>
     <script>
-        window.onload = function () {
-            const sessionToken = localStorage.getItem('todo');
-            if (!sessionToken) {
-                window.location.href = '/';
-            }
-        };
-
         const errorMessage = document.getElementById('errorMessage');
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
 
         async function fetchTodos() {
             const overlay = document.getElementById('spinner-overlay');
@@ -101,8 +89,6 @@
             }
         }
 
-        fetchTodos();
-
         function allowDrop(event) {
             event.preventDefault();
         }
@@ -145,7 +131,18 @@
                 overlay.style.display = 'none';
             }
         }
+
+        window.onload = function () {
+            const sessionToken = localStorage.getItem('todo');
+            if (!sessionToken) {
+                window.location.href = '/';
+            }
+
+            fetchTodos();
+        };
+
     </script>
+    <script src="../script/index.js"></script>
 </body>
 
 </html>

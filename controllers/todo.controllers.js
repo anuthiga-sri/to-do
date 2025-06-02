@@ -12,7 +12,8 @@ exports.getTodoListOfAUser = async (req, res) => {
         include: {
           todoHistories: true,
           user: true
-        }
+        },
+        orderBy: {createdAt: 'asc'}
       });
     } else {
       todos = await prisma.todo.findMany({

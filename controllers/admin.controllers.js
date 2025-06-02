@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, TodoStatus } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const { normalizeData } = require('../utils/index');
@@ -26,6 +26,31 @@ exports.getStatistic = async (req, res) => {
   `);
 
     res.status(200).json({ message: 'Successfully retrieved todo list.', result: normalizeData(result) });
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: 'Failed to fetch' });
+  }
+};
+
+exports.getOverdue = async (req, res) => {
+  try {
+    const todos = await prisma.todo.findMany({
+      where: {
+        status: {
+          not: TodoStatus.COMPLETED
+        },
+        dueDate: {
+          lt: new Date()
+        }
+      },
+      include: {
+        todoHistories: true,
+        user: true
+      },
+      orderBy: {createdAt: 'asc'}
+    });
+
+    res.status(200).json({ message: 'Successfully retrieved todo list.', todoList: todos });
   } catch (err) {
     console.log(err)
     res.status(500).json({ error: 'Failed to fetch' });

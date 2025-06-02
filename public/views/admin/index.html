@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Todo List</title>
-    <link rel="stylesheet" href="../css/style.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
 </head>
 
 <body>
@@ -42,48 +42,48 @@
             <div id="history-error"></div>
         </div>
     </div>
-
+    <script src="../../script/index.js"></script>
     <script>
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-        }
-    
-        function getQueryParam(key) {
-            const params = new URLSearchParams(window.location.search);
-            return params.get(key);
-        }
-    
-        async function loadHistory(todoId, title) {
-            document.getElementById('todo-history-heading').innerHTML = title;
+        async function loadHistory(todo) {
+            document.getElementById('todo-history-heading').innerHTML = todo.title;
             const historySection = document.getElementById('todo-history');
             const historyContent = document.getElementById('history-content');
             const historyLoader = document.getElementById('history-loader');
             const errorMessage = document.getElementById('history-error');
-    
+
             historySection.style.display = 'block';
             historyContent.innerHTML = '';
             historyLoader.style.display = 'block';
-    
+
             try {
-                const res = await fetch(`/api/todos/${todoId}/history`);
+                const res = await fetch(`/api/todos/${todo.id}/history`);
                 const { todoHistories } = await res.json();
-    
+
                 if (!res.ok) {
                     errorMessage.textContent = todoHistories?.error || 'Failed to fetch todo history.';
                     errorMessage.style.color = 'red';
                     return;
                 }
-    
-                historyContent.innerHTML = todoHistories.map(todoHistory =>
-                    `
-                    <div class="timeline-item">
-                        <strong class="status-old">${todoHistory.oldStatus}</strong> → 
-                        <strong class="status-new">${todoHistory.newStatus}</strong>
-                        <time>${formatDate(todoHistory.changedAt)}</time>
+                const dueDate = new Date(todo.dueDate);
+                historyContent.innerHTML = todoHistories.map(todoHistory => {
+                    const changedAt = new Date(todoHistory.changedAt);
+                    const isLate = changedAt > dueDate;
+                    return `
+                        <div class="timeline-item${isLate ? ' late-change' : ''}">
+                            <strong class="status-old">${todoHistory.oldStatus}</strong> → 
+                            <strong class="status-new">${todoHistory.newStatus}</strong>
+                            <time>${formatDate(todoHistory.changedAt)}</time>
+                            ${isLate ? '<span class="late-note">(After Due Date)</span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                historyContent.innerHTML += `
+                    <div class="timeline-item created">
+                        <em>Item Created</em>
+                        <div><time>${formatDate(todo.createdAt)}</time></div>
                     </div>
-                    `
-                ).join('');
+                `;
             } catch (err) {
                 errorMessage.textContent = err.message || 'Failed to fetch todo history.';
                 errorMessage.style.color = 'red';
@@ -92,32 +92,32 @@
                 historySection.scrollIntoView({ behavior: 'smooth' });
             }
         }
-    
+
         async function fetchTodos() {
             const errorMessage = document.getElementById('errorMessage');
             const overlay = document.getElementById('spinner-overlay');
             const heading = document.querySelector('.todo-list-header h2');
             const backLink = document.querySelector('.admin-links a.back');
-    
+
             const userId = getQueryParam('id');
             const userName = getQueryParam('name');
             overlay.style.display = 'flex';
-    
+
             try {
                 const endpoint = userId ? `/api/todos/${userId}` : `/api/todos/0`;
                 const res = await fetch(endpoint);
                 const { todoList } = await res.json();
-    
+
                 if (!res.ok || !todoList.length) {
                     errorMessage.textContent = 'No todos found.';
                     return;
                 }
-    
+
                 if (userId && todoList.length > 0) {
                     heading.textContent = `Todo List of ${userName}`;
                     backLink.href = '/admin/reports';
                 }
-    
+
                 todoList.forEach(todo => {
                     const card = document.createElement('div');
                     card.className = 'card';
@@ -128,12 +128,12 @@
                             <span class="card-date">${formatDate(todo.dueDate)}</span>
                         </div>
                     `;
-    
-                    if (todo.status !== 'TODO') {
-                        card.style.cursor = 'pointer';
-                        card.onclick = () => loadHistory(todo.id, todo.title);
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => {
+                        highlightSelectedCard(card); 
+                        loadHistory(todo);
                     }
-    
+
                     const container = document.getElementById(todo.status || 'TODO');
                     if (container) container.appendChild(card);
                 });
@@ -143,10 +143,10 @@
                 overlay.style.display = 'none';
             }
         }
-    
-        fetchTodos();
+
+        window.onload = fetchTodos();
     </script>
-    
+
 </body>
 
 </html>

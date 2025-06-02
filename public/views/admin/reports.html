@@ -34,7 +34,7 @@
     </div>
 
     <script>
-        window.onload = async function () {
+        async function fetchStatistic () {
             const spinner = document.getElementById('spinner');
             const container = document.getElementById('report-table-container');
             spinner.style.display = 'flex';
@@ -92,6 +92,8 @@
                 spinner.style.display = 'none';
             }
         }
+
+        window.onload = fetchStatistic();
 
         function handleReportTypeChange(reportType) {
             window.location.href = `/admin/reports/${reportType}`;

@@ -13,11 +13,12 @@
         <a href="/" class="back">Back</a>
         <div class="radio-group">
             <label>
-                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)"/>
+                <input type="radio" name="reportType" value="statistic" onchange="handleReportTypeChange(this.value)" />
                 Statistic
             </label>
             <label>
-                <input type="radio" name="reportType" value="overdue" onchange="handleReportTypeChange(this.value)" checked/>
+                <input type="radio" name="reportType" value="overdue" onchange="handleReportTypeChange(this.value)"
+                    checked />
                 Overdue
             </label>
             <label>
@@ -26,17 +27,134 @@
                 Late Completion
             </label>
         </div>
+        <div class="board">
+            <div class="todo-column" id="TODO" ondragover="allowDrop(event)" ondrop="drop(event, 'TODO')">
+                <div class="column-title">ToDo</div>
+            </div>
+            <div class="todo-column" id="IN_PROGRESS" ondragover="allowDrop(event)" ondrop="drop(event, 'IN_PROGRESS')">
+                <div class="column-title">In Progress</div>
+            </div>
+        </div>
+
+        <p class="error" id="errorMessage"></p>
+
+        <div id="spinner-overlay" class="overlay">
+            <div id="spinner" class="spinner"></div>
+        </div>
+
+        <div id="todo-history" class="history-section" style="display: none;">
+            <h3 id="todo-history-heading">Todo History</h3>
+            <div id="history-loader" class="spinner" style="display: none;"></div>
+            <div id="history-content" class="timeline"></div>
+            <div id="history-error"></div>
+        </div>
 
     </div>
 
     <script>
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
 
         function handleReportTypeChange(reportType) {
             window.location.href = `/admin/reports/${reportType}`;
         }
 
+        async function loadHistory(todo) {
+            document.getElementById('todo-history-heading').innerHTML = todo.title;
+            const historySection = document.getElementById('todo-history');
+            const historyContent = document.getElementById('history-content');
+            const historyLoader = document.getElementById('history-loader');
+            const errorMessage = document.getElementById('history-error');
+
+            historySection.style.display = 'block';
+            historyContent.innerHTML = '';
+            historyLoader.style.display = 'block';
+
+            try {
+                const res = await fetch(`/api/todos/${todo.id}/history`);
+                const { todoHistories } = await res.json();
+
+                if (!res.ok) {
+                    errorMessage.textContent = todoHistories?.error || 'Failed to fetch todo history.';
+                    errorMessage.style.color = 'red';
+                    return;
+                }
+                const dueDate = new Date(todo.dueDate);
+                historyContent.innerHTML = todoHistories.map(todoHistory => {
+                    const changedAt = new Date(todoHistory.changedAt);
+                    const isLate = changedAt > dueDate;
+                    return `
+                        <div class="timeline-item${isLate ? ' late-change' : ''}">
+                            <strong class="status-old">${todoHistory.oldStatus}</strong> → 
+                            <strong class="status-new">${todoHistory.newStatus}</strong>
+                            <time>${formatDate(todoHistory.changedAt)}</time>
+                            ${isLate ? '<span class="late-note">(After Due Date)</span>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                historyContent.innerHTML += `
+                    <div class="timeline-item created">
+                        <em>Item Created</em>
+                        <div><time>${formatDate(todo.createdAt)}</time></div>
+                    </div>
+                `;
+            } catch (err) {
+                errorMessage.textContent = err.message || 'Failed to fetch todo history.';
+                errorMessage.style.color = 'red';
+            } finally {
+                historyLoader.style.display = 'none';
+                historySection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        async function fetchOverdueTodos() {
+            const errorMessage = document.getElementById('errorMessage');
+            const overlay = document.getElementById('spinner-overlay');
+            overlay.style.display = 'flex';
+
+            try {
+                const res = await fetch('/api/admin/overdue');
+                const { todoList } = await res.json();
+
+                if (!res.ok || !todoList.length) {
+                    errorMessage.textContent = 'No todos found.';
+                    return;
+                }
+
+                todoList.forEach(todo => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <b>${todo.title}</b>
+                        <div class="card-footer">
+                            <span class="card-user">${todo.user.name}</span>
+                            <span class="card-date">${formatDate(todo.dueDate)}</span>
+                        </div>
+                    `;
+
+                    card.style.cursor = 'pointer';
+                    card.onclick = () => {
+                        highlightSelectedCard(card);
+                        loadHistory(todo);
+                    }
+
+                    const container = document.getElementById(todo.status || 'TODO');
+                    if (container) container.appendChild(card);
+                });
+            } catch (err) {
+                errorMessage.textContent = err.message || 'Error loading todos';
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        window.onload = fetchOverdueTodos();
 
     </script>
+    <script src="../../script/index.js"></script>
 </body>
 
 </html>
